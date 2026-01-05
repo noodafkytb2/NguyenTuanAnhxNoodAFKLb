@@ -29,6 +29,13 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-cache-${{ runner.os }}-${{ hashFiles('**/gradle-wrapper.properties') }}
 
+      - name: Debug: list files
+        run: |
+          pwd
+          ls -la
+          echo "--- rinbounce dir ---"
+          ls -la rinbounce-vb1.2-5 || true
+
       - name: Build (skip tests)
         working-directory: rinbounce-vb1.2-5
         run: ./gradlew clean build -x test
