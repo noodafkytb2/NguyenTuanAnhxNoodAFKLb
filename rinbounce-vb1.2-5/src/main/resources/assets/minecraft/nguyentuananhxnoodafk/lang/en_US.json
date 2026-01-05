@@ -105,6 +105,7 @@
         "module.tNTTimer.description": "Display a timer indicating how long until nearby TNT explodes.",
 
         "module.velocity.description": "Allows you to modify the amount of knockback you take.",
+        "module.velocitylb.description": "Allows you to modify the amount of knockback you take.",
 
         "module.abortBreaking.description": "Allows you to abort breaking without losing your break progress.",
 
