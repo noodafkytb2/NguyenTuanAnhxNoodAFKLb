@@ -92,6 +92,7 @@
         "module.ignite.description": "Automatically sets targets around you on fire.",
 
         "module.killAura.description": "Automatically attacks targets around you.",
+        "module.killaurlb.description": "Automatically attacks targets around you.",
 
         "module.noFriends.description": "Allows you to attack friends.",
 
