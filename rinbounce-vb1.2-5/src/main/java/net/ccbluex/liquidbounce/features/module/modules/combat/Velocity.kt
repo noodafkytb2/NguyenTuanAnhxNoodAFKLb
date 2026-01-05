@@ -70,6 +70,8 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     // IntaveReduce
     private val intaveReduceFactorSetting by float("Factor", 0.6f, 0.6f..1f) { mode == "IntaveReduce" }
     private val hurtTime by int("HurtTime", 9, 1..10) { mode == "IntaveReduce" }
+    private var intaveReduceLastAttackTime = 0L
+    private val intaveReduceLastAttackTimeToReduce = 8000L
     
     // LegitSmart
     private val legitSmartJumpLimit by int("LegitSmartJumpLimit", 2, 1..5) { mode == "LegitSmart" }
@@ -532,10 +534,10 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         val velocityZ = packet.motionZ / 8000.0
                         intaveIsFallDamage = velocityX == 0.0 && velocityZ == 0.0 && velocityY < 0
                         if (thePlayer.hurtTime == hurtTime && 
-                            System.currentTimeMillis() - intaveLastAttackTime <= intaveLastAttackTimeToReduce) {
+                            System.currentTimeMillis() - intaveReduceLastAttackTime <= intaveReduceLastAttackTimeToReduce) {
                             packet.motionX = (packet.motionX * intaveReduceFactorSetting).toInt()
                             packet.motionZ = (packet.motionZ * intaveReduceFactorSetting).toInt()
-                            intaveLastAttackTime = System.currentTimeMillis()
+                            intaveReduceLastAttackTime = System.currentTimeMillis()
                             hasReceivedVelocity = true
                         }
                     } else if (packet is S27PacketExplosion) {
@@ -723,6 +725,18 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                 intaveJumpCount = 0
             }
         }
+    }
+
+    val onAttack = handler<AttackEvent> {
+        val player = mc.thePlayer ?: return@handler
+        if (mode != "IntaveReduce" || !hasReceivedVelocity) return@handler
+
+        if (player.hurtTime == hurtTime && System.currentTimeMillis() - intaveReduceLastAttackTime <= intaveReduceLastAttackTimeToReduce) {
+            player.motionX *= intaveReduceFactorSetting.toDouble()
+            player.motionZ *= intaveReduceFactorSetting.toDouble()
+        }
+
+        intaveReduceLastAttackTime = System.currentTimeMillis()
     }
 
     val onBlockBB = handler<BlockBBEvent> { event ->
