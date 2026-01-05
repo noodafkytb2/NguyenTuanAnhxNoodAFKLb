@@ -90,6 +90,9 @@ shadowJar {
     exclude "META-INF/maven/**"
     exclude "META-INF/versions/**"
 
+    // Exclude module-info to avoid specialsource reobf remapping errors
+    exclude "module-info.class"
+
     exclude "org/apache/log4j/**"
     exclude "org/apache/commons/**"
     exclude "org/junit/**"
