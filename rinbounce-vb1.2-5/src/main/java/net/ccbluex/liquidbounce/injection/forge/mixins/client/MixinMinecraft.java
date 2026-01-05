@@ -92,9 +92,7 @@ public abstract class MixinMinecraft {
     @Shadow
     public GameSettings gameSettings;
 
-    @Shadow
-    public abstract void displayGuiScreen(GuiScreen guiScreenIn);
-
+    // @Shadow displayGuiScreen removed for compatibility with some runtime mappings
     @Unique
     private Future<?> liquidBounce$preloadFuture;
 
@@ -141,7 +139,7 @@ public abstract class MixinMinecraft {
         }
     }
 
-    @Inject(method = "displayGuiScreen", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;currentScreen:Lnet/minecraft/client/gui/GuiScreen;", shift = At.Shift.AFTER))
+    @Inject(method = {"displayGuiScreen", "func_147108_a"}, at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;currentScreen:Lnet/minecraft/client/gui/GuiScreen;", shift = At.Shift.AFTER), remap = true)
     private void handleDisplayGuiScreen(CallbackInfo callbackInfo) {
         if (currentScreen instanceof net.minecraft.client.gui.GuiMainMenu || (currentScreen != null && currentScreen.getClass().getName().startsWith("net.labymod") && currentScreen.getClass().getSimpleName().equals("ModGuiMainMenu"))) {
             currentScreen = new GuiMainMenu();

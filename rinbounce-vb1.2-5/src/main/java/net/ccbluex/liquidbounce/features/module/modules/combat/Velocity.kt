@@ -54,12 +54,12 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             "Reverse", "SmoothReverse", "JumpReset", "Glitch", "Legit",
             "GhostBlock", "Vulcan", "S32Packet", "MatrixReduce", 
             "Delay", "Hypixel", "HypixelAir",
-            "Click", "BlocksMC", "GrimReduce", "LegitSmart", "Intave"
+            "Click", "BlocksMC", "GrimReduce", "LegitSmart", "Intave", "IntaveReduce"
         ), "Simple"
     )
 
     // Intave
-    private val intaveJumpResetCount by int("IntaveJumpResetCount", 2, 1..10) { mode == "Intave" }
+    private val intaveJumpResetCount by int("IntaveJumpResetCount", 2, 1..10) { mode in arrayOf("Intave", "IntaveReduce") }
     private var intaveJumpCount = 0
     private var intaveIsFallDamage = false
     private var intaveLastAttackTime = 0L
@@ -514,9 +514,31 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                             packet.motionX = (packet.motionX * intaveReduceFactor).toInt()
                             packet.motionZ = (packet.motionZ * intaveReduceFactor).toInt()
                             intaveLastAttackTime = System.currentTimeMillis()
+                            hasReceivedVelocity = true
                         }
                     } else if (packet is S27PacketExplosion) {
                         event.cancelEvent()
+                    }
+                }
+
+                "intavereduce" -> {
+                    if (packet is S12PacketEntityVelocity && packet.entityID == thePlayer.entityId) {
+                        val velocityX = packet.motionX / 8000.0
+                        val velocityY = packet.motionY / 8000.0
+                        val velocityZ = packet.motionZ / 8000.0
+                        intaveIsFallDamage = velocityX == 0.0 && velocityZ == 0.0 && velocityY < 0
+                        if (thePlayer.hurtTime in intaveHurtTime && 
+                            System.currentTimeMillis() - intaveLastAttackTime <= intaveLastAttackTimeToReduce) {
+                            packet.motionX = (packet.motionX * intaveReduceFactor).toInt()
+                            packet.motionZ = (packet.motionZ * intaveReduceFactor).toInt()
+                            intaveLastAttackTime = System.currentTimeMillis()
+                            hasReceivedVelocity = true
+                        }
+                    } else if (packet is S27PacketExplosion) {
+                        // Reduce explosion knockback instead of cancelling it
+                        packet.field_149152_f = (packet.field_149152_f * intaveReduceFactor).toFloat()
+                        packet.field_149153_g = (packet.field_149153_g * intaveReduceFactor).toFloat()
+                        packet.field_149159_h = (packet.field_149159_h * intaveReduceFactor).toFloat()
                     }
                 }
 
@@ -681,7 +703,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             hasReceivedVelocity = false
             return@handler
         }
-        if (mode == "Intave" && hasReceivedVelocity) {
+        if ((mode == "Intave" || mode == "IntaveReduce") && hasReceivedVelocity) {
             if (player.hurtTime == 9) {
                 intaveJumpCount++
                 if (intaveJumpCount % intaveJumpResetCount == 0 && 
