@@ -59,7 +59,7 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     )
 
     // Intave
-    private val intaveJumpResetCount by int("IntaveJumpResetCount", 2, 1..10) { mode in arrayOf("Intave", "IntaveReduce") }
+    private val intaveJumpResetCount by int("IntaveJumpResetCount", 2, 1..10) { mode in arrayOf("Intave") }
     private var intaveJumpCount = 0
     private var intaveIsFallDamage = false
     private var intaveLastAttackTime = 0L
