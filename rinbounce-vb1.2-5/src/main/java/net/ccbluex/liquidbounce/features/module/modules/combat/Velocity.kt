@@ -66,6 +66,10 @@ object Velocity : Module("Velocity", Category.COMBAT) {
     private val intaveLastAttackTimeToReduce = 4000L
     private val intaveReduceFactor = 0.6
     private val intaveHurtTime = 1..3
+
+    // IntaveReduce
+    private val intaveReduceFactorSetting by float("Factor", 0.6f, 0.6f..1f) { mode == "IntaveReduce" }
+    private val hurtTime by int("HurtTime", 9, 1..10) { mode == "IntaveReduce" }
     
     // LegitSmart
     private val legitSmartJumpLimit by int("LegitSmartJumpLimit", 2, 1..5) { mode == "LegitSmart" }
@@ -527,18 +531,18 @@ object Velocity : Module("Velocity", Category.COMBAT) {
                         val velocityY = packet.motionY / 8000.0
                         val velocityZ = packet.motionZ / 8000.0
                         intaveIsFallDamage = velocityX == 0.0 && velocityZ == 0.0 && velocityY < 0
-                        if (thePlayer.hurtTime in intaveHurtTime && 
+                        if (thePlayer.hurtTime == hurtTime && 
                             System.currentTimeMillis() - intaveLastAttackTime <= intaveLastAttackTimeToReduce) {
-                            packet.motionX = (packet.motionX * intaveReduceFactor).toInt()
-                            packet.motionZ = (packet.motionZ * intaveReduceFactor).toInt()
+                            packet.motionX = (packet.motionX * intaveReduceFactorSetting).toInt()
+                            packet.motionZ = (packet.motionZ * intaveReduceFactorSetting).toInt()
                             intaveLastAttackTime = System.currentTimeMillis()
                             hasReceivedVelocity = true
                         }
                     } else if (packet is S27PacketExplosion) {
                         // Reduce explosion knockback instead of cancelling it
-                        packet.field_149152_f = (packet.field_149152_f * intaveReduceFactor).toFloat()
-                        packet.field_149153_g = (packet.field_149153_g * intaveReduceFactor).toFloat()
-                        packet.field_149159_h = (packet.field_149159_h * intaveReduceFactor).toFloat()
+                        packet.field_149152_f = (packet.field_149152_f * intaveReduceFactorSetting).toFloat()
+                        packet.field_149153_g = (packet.field_149153_g * intaveReduceFactorSetting).toFloat()
+                        packet.field_149159_h = (packet.field_149159_h * intaveReduceFactorSetting).toFloat()
                     }
                 }
 
@@ -704,7 +708,8 @@ object Velocity : Module("Velocity", Category.COMBAT) {
             return@handler
         }
         if ((mode == "Intave" || mode == "IntaveReduce") && hasReceivedVelocity) {
-            if (player.hurtTime == 9) {
+            val requiredHurtTime = if (mode == "IntaveReduce") hurtTime else 9
+            if (player.hurtTime == requiredHurtTime) {
                 intaveJumpCount++
                 if (intaveJumpCount % intaveJumpResetCount == 0 && 
                     player.onGround && 
